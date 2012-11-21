@@ -26,8 +26,8 @@ namespace dataTries
 			Button CreateDataBaseButton = FindViewById<Button>(Resource.Id.CreateLocalDataBase);
 			Button PullDataButton = FindViewById<Button>(Resource.Id.GetLocalDataBaseData);
 
+			// TODO less code is usually  beter :)
 			/*
-			 * TODO
 			 * You can add EventHandlers with a bit less code:
 			 * DataBaseButton.Click += DataBaseButton_Click;
 			 */ 
@@ -40,14 +40,15 @@ namespace dataTries
 		void PullDataButton_Click(object sender, EventArgs e)
 		{
 
+			// TODO Code reuse
 			/*
-			 * TODO
+			 * 
 			 * The code that is used to communicate with the database is reused (partially) in the CreateDataBaseButton_Click method.
 			 * Try to extract a method that handles situations, so that, for instance, if you change you database location, you need to adjust in only one place.
 			 */ 
 
+			// TODO code improvement readonly vars
 			/*
-			 * TODO
 			 * you could make your DatabaseName a class member, perhaps readonly 
 			 * (note: prefer readonly to const!)
 			 * 
@@ -65,23 +66,21 @@ namespace dataTries
 			try
 			{
 				conn.Open();
+
+				// TODO code style improvement
 				/*
-				 * TODO
+				 * 
 				 * Try using var sdr = cmd.ExecuteReader ();
 				 * 1. left hand side use var for brevity
 				 * 2. C# syntax is written with a space between the method and the parentheses.
 				 */ 
 				SqliteDataReader sdr = cmd.ExecuteReader();//lezer
 
-				/*
-				 * TODO
-				 * Your query does not yield any results because there is no customer with stateId 2
-				 */ 
+				// TODO Your query does not yield any results because there is no customer with stateId 2 
 				while (sdr.Read())
 				{
-					/*
-					 * TODO
-					 * tv.Text is not updated because the operation is not running in the UI Thread.
+					// TODO RunOnUiThread
+					 /* tv.Text is not updated because the operation is not running in the UI Thread.
 					 * Use RunOnUiThread to solve the problem. :)
 					 * Let me know if you don't find out how...
 					 */ 
@@ -116,10 +115,7 @@ namespace dataTries
 			}
 			var conn = new SqliteConnection("Data Source=" + db);   //object dat communiceert met database
 
-			/*
-			 * TODO
-			 * Yes, the array is a list commands that will be executed below.
-			 */
+			 // TODO Yes, the array is a list commands that will be executed below.
 			var commands = new[] { //lijst met commando's????
 				"DROP TABLE IF EXISTS TWITTERDATA",
 				"DROP TRIGGER IF EXISTS TWITTERDATA_INSERT",
@@ -140,10 +136,7 @@ namespace dataTries
 			try
 			{
 
-				/*
-				 * TODO
-				 * indentation?
-				 */
+				// TODO indentation
 				foreach (var cmd in commands)
 					using (var sqlitecmd = conn.CreateCommand())
 				{//commando's uitvoeren???
@@ -178,10 +171,7 @@ namespace dataTries
 			}
 		}
 
-		/*
-		 * TODO
-		 * not sure where you are trying to connect on this one. :)
-		 */ 
+		//TODO not sure where you are trying to connect on this one. :)
 
 		void DataBaseButton_Click(object sender, EventArgs e)
 		{
