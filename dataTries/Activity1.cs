@@ -16,6 +16,8 @@ namespace dataTries
 	public class Activity1 : Activity
 	{
 		TextView tv;
+		readonly string DatabaseName = "UserData.db3";//TODO why read only?
+		string documents = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 		protected override void OnCreate(Bundle bundle)
 		{
 			base.OnCreate(bundle);
@@ -26,65 +28,37 @@ namespace dataTries
 			Button CreateDataBaseButton = FindViewById<Button>(Resource.Id.CreateLocalDataBase);
 			Button PullDataButton = FindViewById<Button>(Resource.Id.GetLocalDataBaseData);
 
-			// TODO less code is usually  beter :)
-			/*
-			 * You can add EventHandlers with a bit less code:
-			 * DataBaseButton.Click += DataBaseButton_Click;
-			 */ 
-
-			DataBaseButton.Click += new EventHandler(DataBaseButton_Click);
-			CreateDataBaseButton.Click += new EventHandler(CreateDataBaseButton_Click);
-			PullDataButton.Click += new EventHandler(PullDataButton_Click);
+			DataBaseButton.Click += DataBaseButton_Click;
+			CreateDataBaseButton.Click += CreateDataBaseButton_Click;
+			PullDataButton.Click += PullDataButton_Click;
 		}
-		
+
+		string dbPath ()
+		{
+			return Path.Combine(documents, DatabaseName); 
+		}
+
 		void PullDataButton_Click(object sender, EventArgs e)
 		{
-
-			// TODO Code reuse
-			/*
-			 * 
-			 * The code that is used to communicate with the database is reused (partially) in the CreateDataBaseButton_Click method.
-			 * Try to extract a method that handles situations, so that, for instance, if you change you database location, you need to adjust in only one place.
-			 */ 
-
-			// TODO code improvement readonly vars
-			/*
-			 * you could make your DatabaseName a class member, perhaps readonly 
-			 * (note: prefer readonly to const!)
-			 * 
-			 */ 
-			string DatabaseName = "UserData.db3";
-			string documents = System.Environment.GetFolderPath(
-				System.Environment.SpecialFolder.Personal);
-			string db = Path.Combine(documents, DatabaseName);//verwijzing naar database
-			var conn = new SqliteConnection("Data Source=" + db); //object om db te lezen
+			var conn = new SqliteConnection("Data Source=" + dbPath ()); //object om db te lezen
 			var strSql = "select Name from Customer where STATEID=@STATEID";
 			var cmd = new SqliteCommand(strSql, conn);
 			cmd.CommandType = CommandType.Text;
-			cmd.Parameters.Add(new SqliteParameter("@STATEID", 2));
+			cmd.Parameters.Add(new SqliteParameter("@STATEID", 1));
 
 			try
 			{
 				conn.Open();
 
-				// TODO code style improvement
-				/*
-				 * 
-				 * Try using var sdr = cmd.ExecuteReader ();
-				 * 1. left hand side use var for brevity
-				 * 2. C# syntax is written with a space between the method and the parentheses.
-				 */ 
-				SqliteDataReader sdr = cmd.ExecuteReader();//lezer
+				var sdr = cmd.ExecuteReader ();//lezer
 
-				// TODO Your query does not yield any results because there is no customer with stateId 2 
 				while (sdr.Read())
 				{
 					// TODO RunOnUiThread
-					 /* tv.Text is not updated because the operation is not running in the UI Thread.
-					 * Use RunOnUiThread to solve the problem. :)
-					 * Let me know if you don't find out how...
+					 /* Found out how - not sure why though?
 					 */ 
-					tv.Text = Convert.ToString(sdr["Name"]);//lezen en weergeven
+					string name = Convert.ToString(sdr["Name"]);
+					RunOnUiThread(() => tv.Text = name);
 				}
 			}
 			catch (System.Exception sysExc)
@@ -104,19 +78,17 @@ namespace dataTries
 		void CreateDataBaseButton_Click(object sender, EventArgs e)
 		{
 			//Database aanmaken
-			string DatabaseName = "UserData.db3";
-			string documents = System.Environment.GetFolderPath(
-				System.Environment.SpecialFolder.Personal);
-			string db = Path.Combine(documents, DatabaseName);  
-			bool exists = File.Exists(db);  
+			bool exists = File.Exists(dbPath ());  
 			if (!exists)  
 			{
-				SqliteConnection.CreateFile(db);// db maken indien't niet bestaat
+				SqliteConnection.CreateFile(dbPath ());// db maken indien't niet bestaat
 			}
-			var conn = new SqliteConnection("Data Source=" + db);   //object dat communiceert met database
+			var conn = new SqliteConnection("Data Source=" + dbPath ());   //object dat communiceert met database
 
-			 // TODO Yes, the array is a list commands that will be executed below.
-			var commands = new[] { //lijst met commando's????
+			//TODO where do these commands come from?
+			/* other language with specific syntax?
+			*/ 
+			var commands = new[] { 
 				"DROP TABLE IF EXISTS TWITTERDATA",
 				"DROP TRIGGER IF EXISTS TWITTERDATA_INSERT",
 				"CREATE TABLE IF NOT EXISTS STATE (STATEID INT PRIMARY KEY, STATENAME VARCHAR(50))",
@@ -133,36 +105,41 @@ namespace dataTries
 				"CREATE INDEX IF NOT EXISTS IDX_DATEENTERED ON CUSTOMER (DATEENTERED)",
 				"INSERT INTO STATE (STATENAME) VALUES ('TENNESSEE');",
 				"INSERT INTO STATE (STATENAME) VALUES ('GEORGIA');"};
+
 			try
 			{
-
-				// TODO indentation
+				// TODO indentation (like this? or...??)
 				foreach (var cmd in commands)
 					using (var sqlitecmd = conn.CreateCommand())
-				{//commando's uitvoeren???
+				{
 					sqlitecmd.CommandText = cmd;
 					sqlitecmd.CommandType = CommandType.Text;
 					conn.Open();
 					sqlitecmd.ExecuteNonQuery();
 					conn.Close();
 				}
-				SqliteCommand sqlc = new SqliteCommand(); //object om commando's door te geven???
+
+				SqliteCommand sqlc = new SqliteCommand();
 				sqlc.Connection = conn;
 				conn.Open();
-				string strSql = "INSERT INTO CUSTOMER (NAME, " +
+
+				string strSql = "INSERT INTO CUSTOMER (NAME, " + 
 					"CONTACTNAME, STATEID) VALUES " +
-						"(@NAME, @CONTACTNAME, @STATEID)";
+					"(@NAME, @CONTACTNAME, @STATEID)";
+
 				sqlc.CommandText = strSql;
 				sqlc.CommandType = CommandType.Text;
 				sqlc.Parameters.Add(new SqliteParameter("@NAME", "The Coca-Cola Company"));
 				sqlc.Parameters.Add(new SqliteParameter("@CONTACTNAME", "John Johns"));
 				sqlc.Parameters.Add(new SqliteParameter("@STATEID", 1));//parameters voor commando toevoegen
 				sqlc.ExecuteNonQuery();
+
 				if (conn.State != ConnectionState.Closed)
 				{
 					conn.Close();
 				}
 				conn.Dispose();
+
 				tv.Text = "Commands completed.";
 			}
 			catch (System.Exception sysExc)
@@ -172,6 +149,9 @@ namespace dataTries
 		}
 
 		//TODO not sure where you are trying to connect on this one. :)
+		/* neither am I comes out of the example in 'Professional Android Programming with Mono for Android and .NET#3aC#'
+		 * I don't really understand this bit.
+		 */
 
 		void DataBaseButton_Click(object sender, EventArgs e)
 		{
