@@ -139,6 +139,11 @@ namespace dataTries
 				"INSERT INTO STATE (STATENAME) VALUES ('GEORGIA');"};
 			try
 			{
+
+				/*
+				 * TODO
+				 * indentation?
+				 */
 				foreach (var cmd in commands)
 					using (var sqlitecmd = conn.CreateCommand())
 				{//commando's uitvoeren???
