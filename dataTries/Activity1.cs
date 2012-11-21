@@ -26,6 +26,12 @@ namespace dataTries
 			Button CreateDataBaseButton = FindViewById<Button>(Resource.Id.CreateLocalDataBase);
 			Button PullDataButton = FindViewById<Button>(Resource.Id.GetLocalDataBaseData);
 
+			/*
+			 * TODO
+			 * You can add EventHandlers with a bit less code:
+			 * DataBaseButton.Click += DataBaseButton_Click;
+			 */ 
+
 			DataBaseButton.Click += new EventHandler(DataBaseButton_Click);
 			CreateDataBaseButton.Click += new EventHandler(CreateDataBaseButton_Click);
 			PullDataButton.Click += new EventHandler(PullDataButton_Click);
@@ -33,6 +39,19 @@ namespace dataTries
 		
 		void PullDataButton_Click(object sender, EventArgs e)
 		{
+
+			/*
+			 * TODO
+			 * The code that is used to communicate with the database is reused (partially) in the CreateDataBaseButton_Click method.
+			 * Try to extract a method that handles situations, so that, for instance, if you change you database location, you need to adjust in only one place.
+			 */ 
+
+			/*
+			 * TODO
+			 * you could make your DatabaseName a class member, perhaps readonly 
+			 * (note: prefer readonly to const!)
+			 * 
+			 */ 
 			string DatabaseName = "UserData.db3";
 			string documents = System.Environment.GetFolderPath(
 				System.Environment.SpecialFolder.Personal);
@@ -42,13 +61,30 @@ namespace dataTries
 			var cmd = new SqliteCommand(strSql, conn);
 			cmd.CommandType = CommandType.Text;
 			cmd.Parameters.Add(new SqliteParameter("@STATEID", 2));
-			
+
 			try
 			{
 				conn.Open();
+				/*
+				 * TODO
+				 * Try using var sdr = cmd.ExecuteReader ();
+				 * 1. left hand side use var for brevity
+				 * 2. C# syntax is written with a space between the method and the parentheses.
+				 */ 
 				SqliteDataReader sdr = cmd.ExecuteReader();//lezer
+
+				/*
+				 * TODO
+				 * Your query does not yield any results because there is no customer with stateId 2
+				 */ 
 				while (sdr.Read())
 				{
+					/*
+					 * TODO
+					 * tv.Text is not updated because the operation is not running in the UI Thread.
+					 * Use RunOnUiThread to solve the problem. :)
+					 * Let me know if you don't find out how...
+					 */ 
 					tv.Text = Convert.ToString(sdr["Name"]);//lezen en weergeven
 				}
 			}
@@ -79,6 +115,11 @@ namespace dataTries
 				SqliteConnection.CreateFile(db);// db maken indien't niet bestaat
 			}
 			var conn = new SqliteConnection("Data Source=" + db);   //object dat communiceert met database
+
+			/*
+			 * TODO
+			 * Yes, the array is a list commands that will be executed below.
+			 */
 			var commands = new[] { //lijst met commando's????
 				"DROP TABLE IF EXISTS TWITTERDATA",
 				"DROP TRIGGER IF EXISTS TWITTERDATA_INSERT",
@@ -131,7 +172,12 @@ namespace dataTries
 				tv.Text = "Exception: " + sysExc.Message;
 			}
 		}
-		
+
+		/*
+		 * TODO
+		 * not sure where you are trying to connect on this one. :)
+		 */ 
+
 		void DataBaseButton_Click(object sender, EventArgs e)
 		{
 			System.Data.SqlClient.SqlConnection sqlCn = new System.Data.SqlClient.SqlConnection();
